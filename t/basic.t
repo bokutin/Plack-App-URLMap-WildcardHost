@@ -21,6 +21,7 @@ my $app4 = $make_app->("app4");
 my $app5 = $make_app->("app5");
 my $app6 = $make_app->("app6");
 my $app7 = $make_app->("app7");
+my $app8 = $make_app->("app8");
 
 my $app = Plack::App::URLMap::WildcardHost->new;
 $app->map("/" => $app1);
@@ -30,6 +31,7 @@ $app->map("http://bar.example.com/" => $app4);
 $app->map("http://*.bar.example.com/" => $app5);
 $app->map("http://*.baz.example.com/" => $app6);
 $app->map("http://baz.example.com/" => $app7);
+$app->map("http://*.qux.example.com/" => $app8);
 
 test_psgi app => $app, client => sub {
     my $cb = shift;
@@ -74,6 +76,12 @@ test_psgi app => $app, client => sub {
 
     $res = $cb->(GET "http://bar.baz.example.com/");
     is $res->content, 'app6||/';
+
+    $res = $cb->(GET "http://qux.example.com/");
+    is $res->content, 'app8||/';
+
+    $res = $cb->(GET "http://buz.qux.example.com/");
+    is $res->content, 'app8||/';
 
     # Fix a bug where $location eq ''
     $_ = "bar"; /bar/;
